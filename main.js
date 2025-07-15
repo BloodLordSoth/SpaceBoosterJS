@@ -5,6 +5,8 @@ canvas.height = 600;
 canvas.width = 400;
 let altitude = 0
 let countdown = 10;
+let xpressed = false;
+let zpressed = false;
 
 const ship = {
     x: 150,
@@ -23,6 +25,12 @@ const bgImg = new Image();bgImg.src = './assets/spacebg.png';
 const shiphold = new Image();shiphold.src = './assets/shipholder.png';
 const rocketShip = new Image();rocketShip.src = './assets/rocket.png';
 
+// === X and Z ===
+const blackX = new Image();blackX.src = './assets/blackx.png';
+const redX = new Image();redX.src = './assets/redx.png';
+const blackZ = new Image();blackZ.src = './assets/blackz.png';
+const redZ = new Image();redZ.src = './assets/redz.png';
+
 
 function draw() {
     c.clearRect(0, 0, canvas.width, canvas.height);
@@ -33,6 +41,19 @@ function draw() {
     // Ship
     c.fillStyle = 'green';
     c.drawImage(rocketShip, ship.x, ship.y, ship.width, ship.height);
+
+    // X and Z images
+    if (xpressed === true){
+        c.drawImage(redX, 200, 320)
+    } else {
+        c.drawImage(blackX, 200, 320)
+    }
+
+    if (zpressed === true){
+        c.drawImage(redZ, 250, 400)
+    } else {
+        c.drawImage(blackZ, 250, 400)
+    }
 
     // UI
     c.fillStyle = 'white';
@@ -87,10 +108,25 @@ loop();
 
 window.addEventListener('keydown', e => {
     if (gameState === 'build') {
-        if (e.key === 'x' || e.key === 'z') {
+        if (e.key === 'x') {
             ship.boosterPower++;
+            xpressed = true;
+        } else if (e.key === 'z'){
+            ship.boosterPower++
+            zpressed = true
         }
     }
+});
+
+window.addEventListener('keyup', e => {
+    if (gameState === 'build') {
+        if (e.key === 'x') {
+            xpressed = false
+        } else if (e.key === 'z'){
+            zpressed = false
+        }
+    }
+
 
     if (gameState === 'launchPrompt' && e.key === ' ') {
         gameState = 'launched';
