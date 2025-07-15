@@ -4,6 +4,7 @@ const c = canvas.getContext('2d');
 canvas.height = 600;
 canvas.width = 400;
 let altitude = 0
+let countdown = 10;
 
 const ship = {
     x: 150,
@@ -19,14 +20,19 @@ let frame = 0;
 let gravity = 1;
 let gameState = 'build'; // Possible: 'build', 'launchPrompt', 'launched'
 const bgImg = new Image();bgImg.src = './assets/spacebg.png';
+const shiphold = new Image();shiphold.src = './assets/shipholder.png';
+const rocketShip = new Image();rocketShip.src = './assets/rocket.png';
+
 
 function draw() {
     c.clearRect(0, 0, canvas.width, canvas.height);
     c.drawImage(bgImg, 0, 0, canvas.width, canvas.height)
 
+    // Ship holder
+    c.drawImage(shiphold, 130, 536)
     // Ship
     c.fillStyle = 'green';
-    c.fillRect(ship.x, ship.y, ship.width, ship.height);
+    c.drawImage(rocketShip, ship.x, ship.y, ship.width, ship.height);
 
     // UI
     c.fillStyle = 'white';
@@ -34,6 +40,7 @@ function draw() {
     c.fillText(`Score: ${score}`, 10, 30);
     c.fillText(`Booster: ${ship.boosterPower}`, 10, 60);
     c.fillText(`Altitude: ${altitude}`, 10, 90)
+    c.fillText(`Countdown: ${countdown}`, 10, 120)
 
     // Launch text
     if (gameState === 'launchPrompt') {
@@ -43,6 +50,12 @@ function draw() {
 }
 
 function update() {
+    if (frame >= 400 && countdown > 0 && gameState === 'build'){
+        if (frame % 60 === 0) {
+            countdown--
+        }
+    }
+
     if (gameState === 'build') {
         frame++;
         if (frame >= 1000) {
@@ -59,6 +72,7 @@ function update() {
             ship.yVel = 0;
             gravity = 0;
             frame = 0;
+            countdown = 10
             gameState = 'build'; // Optional end state
         }
     }
