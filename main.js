@@ -1,79 +1,89 @@
 const canvas = document.querySelector('canvas');
 const c = canvas.getContext('2d');
 
-canvas.height = 600
-canvas.width = 400
-const ship = {x:150,y:10,height:200,width:100,boosterPower:0}
-let score = 0
-let timer = 0
-let xSmash = 0
-let zSmash = 0
-let frame = 0
-let gravity = 1
-let bottom = ship.y + ship.height
-let bgImg = new Image();bgImg.src = './assets/spacebg.png';
-let cameraY = 0
-let bgImgy = 0
-//let canvasBottom = canvasY + canvas.height
-//let canvasY = 0
+canvas.height = 600;
+canvas.width = 400;
+let altitude = 0
 
+const ship = {
+    x: 150,
+    y: 500,
+    height: 100,
+    width: 50,
+    boosterPower: 0,
+    yVel: 0
+};
 
-function draw(){
-    //c.fillStyle = 'skyblue'
-    c.clearRect(0,0,canvas.width,canvas.height)
-    c.drawImage(bgImg, 0, bgImgy);
+let score = 0;
+let frame = 0;
+let gravity = 1;
+let gameState = 'build'; // Possible: 'build', 'launchPrompt', 'launched'
+const bgImg = new Image();bgImg.src = './assets/spacebg.png';
 
-    c.fillStyle = 'green'
-    c.fillRect(ship.x,ship.y,ship.width,ship.height,ship.boosterPower)
+function draw() {
+    c.clearRect(0, 0, canvas.width, canvas.height);
+    c.drawImage(bgImg, 0, 0, canvas.width, canvas.height)
 
-    c.fillStyle = 'white'
-    c.font = '26px sans-serif'
-    c.fillText(`Score: ${score} / ${frame}`, 10,30)
+    // Ship
+    c.fillStyle = 'green';
+    c.fillRect(ship.x, ship.y, ship.width, ship.height);
 
-    c.fillStyle = 'white'
-    c.font = '26px sans-serif'
-    c.fillText(`Booster: ${ship.boosterPower}`, 10,70)
+    // UI
+    c.fillStyle = 'white';
+    c.font = '24px sans-serif';
+    c.fillText(`Score: ${score}`, 10, 30);
+    c.fillText(`Booster: ${ship.boosterPower}`, 10, 60);
+    c.fillText(`Altitude: ${altitude}`, 10, 90)
+
+    // Launch text
+    if (gameState === 'launchPrompt') {
+        c.font = '40px sans-serif';
+        c.fillText('Launch!', canvas.width / 2 - 90, canvas.height / 2);
+    }
 }
 
-function update(){
-   ship.y += gravity
+function update() {
+    if (gameState === 'build') {
+        frame++;
+        if (frame >= 1000) {
+            gameState = 'launchPrompt';
+        }
+    } else if (gameState === 'launched') {
+        ship.y += ship.yVel;
+        ship.yVel += gravity;
+        altitude++
 
-    if (frame === 800){
-       // ship.y -= ship.boosterPower
-       // frame = 0
-       // ship.boosterPower = 0
-    } 
+        // Stop when the ship lands back down
+        if (ship.y + ship.height >= canvas.height) {
+            ship.y = canvas.height - ship.height;
+            ship.yVel = 0;
+            gravity = 0;
+            frame = 0;
+            gameState = 'build'; // Optional end state
+        }
+    }
+}
 
-    if (bottom < canvas.height){
-        ship.y++
-        bottom = ship.y + ship.height
-    } else{
-        gravity = 0
-        
+function loop() {
+    draw();
+    update();
+    requestAnimationFrame(loop);
+}
+loop();
+
+window.addEventListener('keydown', e => {
+    if (gameState === 'build') {
+        if (e.key === 'x' || e.key === 'z') {
+            ship.boosterPower++;
+        }
     }
 
-    cameraY = Math.min(ship.y - 100, bgImg.height - canvas.height);
-    cameraY = Math.max(0, cameraY);
-}
-
-function loop(){
-    draw()
-    frame++
-    update()
-    requestAnimationFrame(loop)
-}
-loop()
-
-window.addEventListener('keydown', e =>{
-    if (e.key === 'x'){
-        ship.boosterPower++
-    } else if (e.key === 'z'){
-        ship.boosterPower++
-    } else if (e.key === ' '){
-        launch()
-    }   
-})
-
-function launch(){
-    ship.y -= ship.boosterPower
-}
+    if (gameState === 'launchPrompt' && e.key === ' ') {
+        gameState = 'launched';
+        ship.yVel = -ship.boosterPower * 0.5; // Tune the multiplier for launch height
+        //altitude++
+        gravity = 0.5; // Re-enable gravity
+        score = ship.boosterPower;
+        ship.boosterPower = 0;
+    }
+});
